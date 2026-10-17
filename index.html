@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopping Security Awareness Demo</title>
+<style>
+*{box-sizing:border-box}body{font:16px/1.5 system-ui,sans-serif;background:#f3f5f9;color:#182436;margin:0;padding:22px;min-height:100vh;display:grid;place-items:center}main{width:min(100%,550px);background:#fff;border-radius:16px;padding:28px;box-shadow:0 10px 35px #12243a18}.tag{display:inline-block;background:#fff1d6;color:#704c00;border-radius:30px;padding:5px 11px;font-size:12px;font-weight:750}h1{font-size:25px;margin:15px 0 8px}p{color:#465569}label{display:block;margin:13px 0 4px;font-weight:650}input:not([type=checkbox]){width:100%;padding:12px;border:1px solid #a8b5c7;border-radius:8px;font:inherit}button,.link{display:inline-block;border:0;border-radius:9px;padding:12px 17px;font:inherit;text-decoration:none}.link{background:#edf2fc;color:#16488c}.submit{width:100%;margin-top:18px;background:#1957ad;color:white;cursor:pointer;font-weight:700}.submit:disabled{opacity:.55;cursor:wait}.consent{display:flex;align-items:start;gap:10px;margin-top:20px;font-size:14px}.consent input{margin-top:5px}.note{font-size:13px}.result{display:none;margin-top:18px;padding:14px;border-radius:9px;background:#eaf6ee;white-space:pre-wrap;overflow-wrap:anywhere}footer{font-size:12px;color:#677386;margin-top:22px}
+</style>
+</head>
+<body><main>
+<span class="tag">SECURITY AWARENESS · TEST ONLY</span>
+<h1>Can a webpage collect information you type?</h1>
+<p>This is an independent training demonstration, <strong>not affiliated with Temu</strong>. Use only the fictional sample details below. This form will email the submitted test data to <strong>tilen.colja.1982@gmail.com</strong> if you consent.</p>
+<a class="link" href="https://www.temu.com/" target="_blank" rel="noopener noreferrer">Open official Temu website ↗</a>
+<form id="demoForm" autocomplete="off">
+<label for="name">Fictional name</label><input id="name" maxlength="80" required value="Example Person">
+<label for="email">Fictional email</label><input id="email" type="email" maxlength="120" required value="example@example.com">
+<label for="phone">Fictional phone</label><input id="phone" maxlength="40" required value="000 000 000">
+<label for="address">Fictional address</label><input id="address" maxlength="160" required value="123 Example Street">
+<div class="consent"><input id="consent" type="checkbox" required><label for="consent" style="margin:0;font-weight:400">I understand this is a simulation, and I agree to send these <strong>fictional test details</strong> to <strong>tilen.colja.1982@gmail.com</strong>.</label></div>
+<button id="send" class="submit" type="submit">Confirm and email test details</button>
+</form><div class="result" id="result" role="status" aria-live="polite"></div>
+<footer>Before submitting personal data, verify the website address. Logos and familiar-looking forms do not prove ownership.</footer>
+</main>
+<script>
+// Replace this with the URL shown after deploying your Cloudflare Worker.
+const WORKER_URL = 'https://REPLACE-WITH-YOUR-WORKER.workers.dev';
+const form = document.getElementById('demoForm');
+const result = document.getElementById('result');
+form.addEventListener('submit', async (event) => {
+ event.preventDefault();
+ if (!form.reportValidity()) return;
+ const data = Object.fromEntries(['name','email','phone','address'].map(id => [id, document.getElementById(id).value.trim()]));
+ if (!document.getElementById('consent').checked) return;
+ const button = document.getElementById('send'); button.disabled = true;
+ result.style.display = 'block'; result.textContent = 'Sending test submission…';
+ try {
+  if (WORKER_URL.includes('REPLACE-WITH-YOUR-WORKER')) throw new Error('The site owner must configure the Cloudflare Worker URL first.');
+  const response = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,consent:true})});
+  if (!response.ok) throw new Error('Delivery failed. Please try again later.');
+  result.textContent = 'Test data sent successfully. This is how an untrusted form can transmit information to another person. Never enter real personal details into a page you have not verified.';
+  form.reset();
+ } catch (error) {result.textContent = error.message;}
+ finally {button.disabled = false;}
+});
+</script></body></html>
